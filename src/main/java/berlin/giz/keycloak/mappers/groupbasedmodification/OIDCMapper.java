@@ -2,6 +2,7 @@ package berlin.giz.keycloak.mappers.groupbasedmodification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.jboss.logging.Logger;
 import org.keycloak.models.ClientSessionContext;
@@ -25,6 +26,7 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
 
     static final String PROVIDER_ID = "group-based-prefix-oidc-mapper";
 
+    static final String OTHER_CLAIM_CONFIG = "other";
     static final String MODIFICATION_CONFIG = "modification";
     static final String GROUP_NAME_CONFIG = "group";
     static final String MEMBERSHIP_CONFIG = "membership";
@@ -49,6 +51,14 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
             ProtocolMapperUtils.USER_MODEL_PROPERTY_HELP_TEXT,
             ProviderConfigProperty.STRING_TYPE,
             null
+        ));
+        configProperties.add(new ProviderConfigProperty(
+            OTHER_CLAIM_CONFIG,
+            "Other Claim",
+            "Configures whether look for the value specified in the attributes field in the other claims " +
+                "instead. Use this to e.g. modify the full name claim.",
+            ProviderConfigProperty.BOOLEAN_TYPE,
+            "false"
         ));
         configProperties.add(new ProviderConfigProperty(
             MODIFICATION_CONFIG,
@@ -110,7 +120,9 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
         return CONFIG_PROPERTIES;
     }
 
-    private String getModifiedAttributeValueCollection(ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession) {
+    private String getModifiedAttributeValueCollection(ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession,
+        Boolean fromOtherClaims, Map<String, Object> otherClaims
+    ) {
         String userAttribute = mappingModel.getConfig().get(ProtocolMapperUtils.USER_ATTRIBUTE);
         String modification = mappingModel.getConfig().get(MODIFICATION_CONFIG);
         String groupName = mappingModel.getConfig().get(GROUP_NAME_CONFIG);
@@ -136,24 +148,33 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
             return null;
         }
         
-        String propertyValue = ProtocolMapperUtils.getUserModelValue(user, userAttribute);
-        if (propertyValue == null) {
+        Object propertyValue = fromOtherClaims ? otherClaims.get(userAttribute) : ProtocolMapperUtils.getUserModelValue(user, userAttribute);
+        if (propertyValue == null || !(propertyValue instanceof String)) {
+            LOGGER.debug("Property value either null or not String " + userAttribute);
             return null;
         }
 
+        String propertyValueString = (String) propertyValue;
         // Modify attribute
         if (location.equals(MODIFICATION_LOCATION_PREFIX)) {
-            return modification + propertyValue;
+            return modification + propertyValueString;
         } else if (location.equals(MODIFICATION_LOCATION_SUFFIX)) {
-            return propertyValue + modification;
+            return propertyValueString + modification;
         }
-        return propertyValue;
+        return propertyValueString;
     }
 
     @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession,
-            KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
-        String modifiedAttributeValue = this.getModifiedAttributeValueCollection(mappingModel, userSession, keycloakSession);
+        KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx
+    ) {
+        String checkOtherClaimsValue = mappingModel.getConfig().get(OTHER_CLAIM_CONFIG);
+        if (checkOtherClaimsValue == null) {
+            return;
+        }
+        Boolean checkOtherClaims = Boolean.valueOf(checkOtherClaimsValue);
+        
+        String modifiedAttributeValue = this.getModifiedAttributeValueCollection(mappingModel, userSession, keycloakSession, checkOtherClaims, token.getOtherClaims());
         if (modifiedAttributeValue == null) {
             return;
         }
@@ -164,8 +185,15 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
 
     @Override
     protected void setClaim(AccessTokenResponse accessTokenResponse, ProtocolMapperModel mappingModel,
-            UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
-        String modifiedAttributeValue = this.getModifiedAttributeValueCollection(mappingModel, userSession, keycloakSession);
+            UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx
+    ) {
+        String checkOtherClaimsValue = mappingModel.getConfig().get(OTHER_CLAIM_CONFIG);
+        if (checkOtherClaimsValue == null) {
+            return;
+        }
+        Boolean checkOtherClaims = Boolean.valueOf(checkOtherClaimsValue);
+
+        String modifiedAttributeValue = this.getModifiedAttributeValueCollection(mappingModel, userSession, keycloakSession, checkOtherClaims, accessTokenResponse.getOtherClaims());
         if (modifiedAttributeValue == null) {
             return;
         }
