@@ -138,7 +138,7 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
 
         // Check user's group membership
         Boolean requireGroupMembership = Boolean.valueOf(membership);
-        GroupModel group = KeycloakModelUtils.findGroupByPath(userSession.getRealm(), groupName);
+        GroupModel group = KeycloakModelUtils.findGroupByPath(keycloakSession, userSession.getRealm(), groupName);
         if (group == null) {
             LOGGER.debug("Group is null");
             return null;
