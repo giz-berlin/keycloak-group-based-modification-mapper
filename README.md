@@ -1,6 +1,6 @@
 # Keycloak Group Based Prefix Mapper
 
-[![pipeline status](https://rechenknecht.net/giz/keycloak/group-based-modification-mapper/badges/main/pipeline.svg)](https://rechenknecht.net/giz/keycloak/group-based-modification-mapper/-/commits/main)
+[![pipeline status](https://rechenknecht.net/giz/keycloak/group-based-prefix-mapper/badges/main/pipeline.svg)](https://rechenknecht.net/giz/keycloak/group-based-prefix-mapper/-/commits/main)
 
 A Keycloak Mapper that adds a configurable prefix to attributes based on a user's groups.
 
