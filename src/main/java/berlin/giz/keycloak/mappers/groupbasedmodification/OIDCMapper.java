@@ -102,7 +102,7 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
 
     @Override
     public String getDisplayType() {
-        return "Group Based Prefix OIDC Mapper";
+        return "OIDC Claims Modification Mapper";
     }
 
     @Override
