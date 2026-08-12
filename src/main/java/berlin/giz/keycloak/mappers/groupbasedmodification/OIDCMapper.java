@@ -70,7 +70,8 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
         configProperties.add(new ProviderConfigProperty(
             GROUP_NAME_CONFIG,
             "Group",
-            "The group whose membership is checked for the user",
+            "The group whose membership is checked for the user. If no group is selected, " +
+                "the mapper is applied to all users and the membership switch is ignored.",
             ProviderConfigProperty.GROUP_TYPE,
             null
         ));
@@ -78,7 +79,7 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
             MEMBERSHIP_CONFIG,
             "Membership",
             "Configures whether the modification is applied when the user is (direct) part of the group (ON) " +
-                "or when the user is not part of the group (OFF).",
+                "or when the user is not part of the group (OFF). The settings has no effect if no group is selected.",
             ProviderConfigProperty.BOOLEAN_TYPE,
             null
         ));
@@ -135,8 +136,8 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
         String location = mappingModel.getConfig().get(LOCATION_CONFIG);
         String checkOtherClaimsValue = mappingModel.getConfig().get(OTHER_CLAIM_CONFIG);
 
-        // Ensure that none of the above is null (mapper is properly set up)
-        if (userAttribute == null || modification == null || groupName == null || membership == null || location == null || checkOtherClaimsValue == null) {
+        // Ensure that none of the above except the group name is null (mapper is properly set up).
+        if (userAttribute == null || modification == null || membership == null || location == null || checkOtherClaimsValue == null) {
             return null;
         }
 
@@ -144,16 +145,20 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
 
         UserModel user = userSession.getUser();
 
-        // Check user's direct group membership
-        Boolean requireGroupMembership = Boolean.valueOf(membership);
-        GroupModel group = KeycloakModelUtils.findGroupByPath(keycloakSession, userSession.getRealm(), groupName);
-        if (group == null) {
-            LOGGER.debug("Group is null");
-            return null;
-        }
-        if (user.isMemberOf(group) != requireGroupMembership) {
-            LOGGER.debug("Require group membership is not fulfilled");
-            return null;
+        if (groupName == null) {
+            LOGGER.debug("Group name is null; mapper is applied to all users");
+        } else {
+            // Check user's direct group membership
+            Boolean requireGroupMembership = Boolean.valueOf(membership);
+            GroupModel group = KeycloakModelUtils.findGroupByPath(keycloakSession, userSession.getRealm(), groupName);
+            if (group == null) {
+                LOGGER.debug("No group found for configured group name");
+                return null;
+            }
+            if (user.isMemberOf(group) != requireGroupMembership) {
+                LOGGER.debug("Require group membership is not fulfilled");
+                return null;
+            }
         }
 
         // get original attribute (either from claim collection or user attributes)
