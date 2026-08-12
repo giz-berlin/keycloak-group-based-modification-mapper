@@ -6,8 +6,8 @@ configurations {
     bundleLib
 }
 
-group 'berlin.giz.keycloak.mappers'
-version '1.0.10'
+group = 'berlin.giz.keycloak.mappers'
+version = '1.0.10'
 
 ext {
     keycloakVersion = '26.2.4'
