@@ -7,7 +7,7 @@ configurations {
 }
 
 group = 'berlin.giz.keycloak.mappers'
-version = '1.0.10'
+version = '1.0.11'
 
 ext {
     keycloakVersion = '26.5.5'
