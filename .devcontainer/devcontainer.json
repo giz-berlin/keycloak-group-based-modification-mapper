@@ -1,0 +1,21 @@
+{
+    "name": "Keycloak Plugin Devcontainer",
+
+    "build": {
+        "dockerfile": "Containerfile",
+        "args": {
+            "REMOTE_USER": "${localEnv:USER}",
+            "REMOTE_UID": "${localEnv:REMOTE_UID:1000}",
+            "REMOTE_GID": "${localEnv:REMOTE_GID:1000}"
+        }
+    },
+    "remoteUser": "${localEnv:USER}",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "redhat.java",
+                "vscjava.vscode-gradle"
+            ]
+        }
+    }
+}
