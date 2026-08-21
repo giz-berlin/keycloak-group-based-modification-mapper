@@ -1,5 +1,5 @@
 default:
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/gradle:9.7.0-jdk25
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/gradle:9.7.0-jdk21
 
 stages:
   - build
