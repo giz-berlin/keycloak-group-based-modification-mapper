@@ -58,7 +58,7 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
             "Configures whether to look for the value specified in the attributes field in the other claims " +
                 "instead. Use this to e.g. modify the full name claim.",
             ProviderConfigProperty.BOOLEAN_TYPE,
-            "false"
+            false
         ));
         configProperties.add(new ProviderConfigProperty(
             MODIFICATION_CONFIG,
@@ -81,7 +81,7 @@ public class OIDCMapper extends AbstractOIDCProtocolMapper implements OIDCAccess
             "Configures whether the modification is applied when the user is (direct) part of the group (ON) " +
                 "or when the user is not part of the group (OFF). The settings has no effect if no group is selected.",
             ProviderConfigProperty.BOOLEAN_TYPE,
-            null
+            false
         ));
         configProperties.add(new ProviderConfigProperty(
             LOCATION_CONFIG,
